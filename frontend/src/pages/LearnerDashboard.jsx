@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import api from "../api";
 import {
   FaUser,
   FaProjectDiagram,
@@ -31,20 +31,20 @@ function LearnerDashboard() {
 
     const fetchData = async () => {
       try {
-        const res = await axios.get("http://localhost:5000/api/users/profile", {
+        const res = await api.get("/users/profile", {
           headers: { Authorization: `Bearer ${token}` },
         });
         setUser(res.data.user);
         setFormData(res.data.user);
 
-        const projRes = await axios.get(
-          "http://localhost:5000/api/projects/match",
+        const projRes = await api.get(
+          "/projects/match",
           { headers: { Authorization: `Bearer ${token}` } }
         );
         setProjects(projRes.data);
 
-        const appliedRes = await axios.get(
-          "http://localhost:5000/api/projects/applied/mine",
+        const appliedRes = await api.get(
+          "/projects/applied/mine",
           { headers: { Authorization: `Bearer ${token}` } }
         );
         setAppliedProjects(appliedRes.data);
@@ -89,8 +89,8 @@ function LearnerDashboard() {
   const handleSave = async () => {
     try {
       const token = localStorage.getItem("token");
-      const res = await axios.put(
-        "http://localhost:5000/api/users/profile",
+      const res = await api.put(
+        "/users/profile",
         {
           name: formData.name,
           education: formData.learnerProfile?.education,
@@ -112,15 +112,15 @@ function LearnerDashboard() {
   const handleApply = async (projectId) => {
     const token = localStorage.getItem("token");
     try {
-      await axios.post(
-        `http://localhost:5000/api/projects/${projectId}/apply`,
+      await api.post(
+        `/projects/${projectId}/apply`,
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       );
       alert("✅ Applied successfully!");
 
-      const appliedRes = await axios.get(
-        "http://localhost:5000/api/projects/applied/mine",
+      const appliedRes = await api.get(
+        "/projects/applied/mine",
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setAppliedProjects(appliedRes.data);
@@ -132,15 +132,15 @@ function LearnerDashboard() {
   const handleWithdraw = async (projectId) => {
     const token = localStorage.getItem("token");
     try {
-      await axios.post(
-        `http://localhost:5000/api/projects/${projectId}/withdraw`,
+      await api.post(
+        `/projects/${projectId}/withdraw`,
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       );
       alert("✅ Withdrawn successfully!");
 
-      const appliedRes = await axios.get(
-        "http://localhost:5000/api/projects/applied/mine",
+      const appliedRes = await api.get(
+        "/projects/applied/mine",
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setAppliedProjects(appliedRes.data);
