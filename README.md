@@ -1,3 +1,7 @@
+> **Project overview**
+> WitTrade is a collaborative marketplace prototype for project-based learning. The [frontend](frontend) is a Vite app. The [backend](backend) is an Express API with routes for authentication, profiles, and projects.
+> [Original project and contributors](https://github.com/ayush-bhatt-07/WitTrade)
+
 # WitTrade – A Marketplace for Minds  
 🏆 *Top 6 Finalist at Hack Quanta 36-hour Hackathon (JIMS, Greater Noida x Geek Room)*  
 
