@@ -1,4 +1,5 @@
 import express from "express";
+import mongoose from "mongoose";
 import Project from "../models/Project.js";
 import protect from "../middleware/authMiddleware.js";
 
@@ -72,25 +73,28 @@ router.post("/:id/apply", protect, async (req, res) => {
       return res.status(403).json({ message: "Only learners can apply" });
     }
 
-    const project = await Project.findById(req.params.id);
-    if (!project) return res.status(404).json({ message: "Project not found" });
-
-    // prevent duplicate applications
-    const alreadyApplied = project.applicants.find(
-      (a) => a.learnerId.toString() === req.user._id.toString()
-    );
-    if (alreadyApplied) {
-      return res.status(400).json({ message: "Already applied" });
+    const projectId = req.params.id;
+    if (!mongoose.isObjectIdOrHexString(projectId)) {
+      return res.status(400).json({ message: "Invalid project ID" });
     }
-
-    project.applicants.push({
-      learnerId: req.user._id,
-      learnerName: req.user.name,
-      learnerEmail: req.user.email,
-    });
-
-    await project.save();
-    res.json({ message: "Applied successfully", projectId: project._id });
+    const learnerId = req.user._id;
+    const result = await Project.updateOne(
+      { _id: projectId, "applicants.learnerId": { $ne: learnerId } },
+      { $push: { applicants: {
+        learnerId,
+        learnerName: req.user.name,
+        learnerEmail: req.user.email,
+        appliedAt: new Date(),
+      } } },
+      { runValidators: true }
+    );
+    if (!result.matchedCount) {
+      if (await Project.exists({ _id: projectId })) {
+        return res.status(400).json({ message: "Already applied" });
+      }
+      return res.status(404).json({ message: "Project not found" });
+    }
+    res.json({ message: "Applied successfully", projectId });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Server error" });
@@ -124,16 +128,18 @@ router.post("/:id/withdraw", protect, async (req, res) => {
       return res.status(403).json({ message: "Only learners can withdraw" });
     }
 
-    const project = await Project.findById(req.params.id);
-    if (!project) return res.status(404).json({ message: "Project not found" });
-
-    // remove learner from applicants
-    project.applicants = project.applicants.filter(
-      (a) => a.learnerId.toString() !== req.user._id.toString()
+    const projectId = req.params.id;
+    if (!mongoose.isObjectIdOrHexString(projectId)) {
+      return res.status(400).json({ message: "Invalid project ID" });
+    }
+    const result = await Project.updateOne(
+      { _id: projectId },
+      { $pull: { applicants: { learnerId: req.user._id } } }
     );
-
-    await project.save();
-    res.json({ message: "Withdrawn successfully", projectId: project._id });
+    if (!result.matchedCount) {
+      return res.status(404).json({ message: "Project not found" });
+    }
+    res.json({ message: "Withdrawn successfully", projectId });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Server error" });
@@ -142,7 +148,10 @@ router.post("/:id/withdraw", protect, async (req, res) => {
 
 router.get("/all", async (req, res) => {
   try {
-    const { skill, companyName, industry } = req.query;
+    const { skill, companyName } = req.query;
+    if ([skill, companyName].some(value => value !== undefined && (typeof value !== "string" || value.length > 100))) {
+      return res.status(400).json({ message: "Filters must be text of up to 100 characters" });
+    }
 
     let filters = {};
 
@@ -150,10 +159,10 @@ router.get("/all", async (req, res) => {
       filters.requiredSkills = { $in: [skill] };
     }
     if (companyName) {
-      filters.companyName = { $regex: companyName, $options: "i" };
+      const fragment = companyName.replace(/[.*+?^$\x7B\x7D()|\[\]\\]/g, '\\filters.companyName = { $regex: companyName, $options: "i" };');
+      filters.companyName = { $regex: fragment, $options: "i" };
     }
 
-    // Optional: If you want industry filter, populate startup profile
     let query = Project.find(filters).select("-applicants");
 
     const projects = await query.sort({ createdAt: -1 });
