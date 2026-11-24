@@ -7,6 +7,9 @@ const router = express.Router();
 // ✅ Create new project
 router.post("/", protect, async (req, res) => {
   try {
+    if (req.user.role !== "startup") {
+      return res.status(403).json({ message: "Only startups can publish projects" });
+    }
     const { title, description, requiredSkills } = req.body;
 
     const project = new Project({
@@ -53,7 +56,7 @@ router.get("/match", protect, async (req, res) => {
     // Find projects where requiredSkills overlaps with learner's skills
     const projects = await Project.find({
       requiredSkills: { $in: learnerSkills },
-    });
+    }).select("-applicants");
 
     res.json(projects);
   } catch (err) {
@@ -87,7 +90,7 @@ router.post("/:id/apply", protect, async (req, res) => {
     });
 
     await project.save();
-    res.json({ message: "Applied successfully", project });
+    res.json({ message: "Applied successfully", projectId: project._id });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Server error" });
@@ -105,7 +108,7 @@ router.get("/applied/mine", protect, async (req, res) => {
 
     const projects = await Project.find({
       "applicants.learnerId": req.user._id,
-    });
+    }).select("-applicants");
 
     res.json(projects);
   } catch (err) {
@@ -130,7 +133,7 @@ router.post("/:id/withdraw", protect, async (req, res) => {
     );
 
     await project.save();
-    res.json({ message: "Withdrawn successfully", project });
+    res.json({ message: "Withdrawn successfully", projectId: project._id });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Server error" });
@@ -151,7 +154,7 @@ router.get("/all", async (req, res) => {
     }
 
     // Optional: If you want industry filter, populate startup profile
-    let query = Project.find(filters);
+    let query = Project.find(filters).select("-applicants");
 
     const projects = await query.sort({ createdAt: -1 });
     res.json(projects);
