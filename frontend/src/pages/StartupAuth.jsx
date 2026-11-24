@@ -1,5 +1,5 @@
 import { useState } from "react";
-import axios from "axios";
+import api from "../api";
 import { useNavigate } from "react-router-dom";
 
 function StartupAuth() {
@@ -24,7 +24,7 @@ function StartupAuth() {
     e.preventDefault();
     try {
       if (isSignup) {
-        const res = await axios.post("http://localhost:5000/api/auth/register", {
+        const res = await api.post("/auth/register", {
           name: formData.companyName,
           email: formData.email,
           password: formData.password,
@@ -42,7 +42,7 @@ function StartupAuth() {
         alert("✅ Startup signed up!");
         navigate("/startup-dashboard");
       } else {
-        const res = await axios.post("http://localhost:5000/api/auth/login", {
+        const res = await api.post("/auth/login", {
           email: formData.email,
           password: formData.password,
         });
