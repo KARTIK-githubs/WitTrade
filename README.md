@@ -1,3 +1,5 @@
+> **Run the marketplace locally.** Copy `backend/.env.example` to `backend/.env` and set a fresh JWT secret. With MongoDB running, run `npm ci` and `npm run dev` from `backend`, then repeat in `frontend`. The browser defaults to `http://localhost:5000/api`. For hosting, set `VITE_API_URL` to your Express API base ending in `/api` and `FRONTEND_URL` to your deployed frontend origin. Use a startup account to publish a project and a separate learner account to apply.
+
 > **Project overview**
 > WitTrade is a collaborative marketplace prototype for project-based learning. The [frontend](frontend) is a Vite app. The [backend](backend) is an Express API with routes for authentication, profiles, and projects.
 > [Original project and contributors](https://github.com/ayush-bhatt-07/WitTrade)
