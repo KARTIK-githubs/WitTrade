@@ -1,5 +1,5 @@
 import { useState } from "react";
-import axios from "axios";
+import api from "../api";
 import { useNavigate } from "react-router-dom";
 
 function LearnerAuth() {
@@ -23,7 +23,7 @@ function LearnerAuth() {
     e.preventDefault();
     try {
       if (isSignup) {
-        const res = await axios.post("http://localhost:5000/api/auth/register", {
+        const res = await api.post("/auth/register", {
           name: formData.name,
           email: formData.email,
           password: formData.password,
@@ -41,7 +41,7 @@ function LearnerAuth() {
         localStorage.setItem("token", res.data.token);
         navigate("/dashboard");
       } else {
-        const res = await axios.post("http://localhost:5000/api/auth/login", {
+        const res = await api.post("/auth/login", {
           email: formData.email,
           password: formData.password,
         });
