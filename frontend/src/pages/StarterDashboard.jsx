@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import api from "../api";
 import {
   FaUserTie,
   FaFolderPlus,
@@ -33,13 +33,13 @@ function StartupDashboard() {
 
     const fetchProfileAndProjects = async () => {
       try {
-        const res = await axios.get("http://localhost:5000/api/users/profile", {
+        const res = await api.get("/users/profile", {
           headers: { Authorization: `Bearer ${token}` },
         });
         setUser(res.data.user);
 
-        const projRes = await axios.get(
-          "http://localhost:5000/api/projects/mine",
+        const projRes = await api.get(
+          "/projects/mine",
           { headers: { Authorization: `Bearer ${token}` } }
         );
         setProjects(projRes.data);
@@ -71,8 +71,8 @@ function StartupDashboard() {
     const token = localStorage.getItem("token");
 
     try {
-      const res = await axios.post(
-        "http://localhost:5000/api/projects",
+      const res = await api.post(
+        "/projects",
         {
           title: newProject.title,
           description: newProject.description,
