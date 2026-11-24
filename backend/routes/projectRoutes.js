@@ -159,7 +159,7 @@ router.get("/all", async (req, res) => {
       filters.requiredSkills = { $in: [skill] };
     }
     if (companyName) {
-      const fragment = companyName.replace(/[.*+?^$\x7B\x7D()|\[\]\\]/g, '\\filters.companyName = { $regex: companyName, $options: "i" };');
+      const fragment = companyName.replace(/[.*+?^$\x7B\x7D()|\[\]\\]/g, character => '\\' + character);
       filters.companyName = { $regex: fragment, $options: "i" };
     }
 
